@@ -1,6 +1,28 @@
 # Faust IDE [![Badge](https://img.shields.io/badge/link-996.icu-%23FF4D5B.svg?style=flat-square)](https://996.icu/#/en_US)
 
-> **This fork** adds a native macOS application: see [miniapp/README.md](miniapp/README.md).
+## This fork: Faust IDE as a macOS application
+
+This branch adds a native macOS app (`/Applications/Faust IDE.app`) built around the IDE:
+it opens in under a second, works offline and keeps audio running at full speed when the
+window is in the background. Details in [miniapp/README.md](miniapp/README.md).
+
+```bash
+git clone -b macos-app https://github.com/LucaSpanedda/faustide.git
+cd faustide
+npm install && npm run dist          # build the IDE
+cd miniapp
+npm install                          # Electron runtime
+./build-app.sh install               # copy "Faust IDE.app" to /Applications
+```
+
+| | |
+|---|---|
+| `macos-app` (default branch) | Faust IDE + macOS app, updated from Grame when needed |
+| `master` | unchanged copy of [grame-cncm/faustide](https://github.com/grame-cncm/faustide) |
+| tag `macos-app-ide-1.10.3` | macOS app with IDE 1.10.3 (December 2025), the version in daily use |
+
+---
+
 
 The online [Faust IDE](https://faustide.grame.fr) can be used to _edit_, _compile_ and _run_ Faust code from any recent Web Browser with [webassembly](http://webassembly.org) support. It works completely on the client side and it is therefore very convenient for situations with many simultaneous users (workshops, classrooms, etc.). It embeds the latest version of the Faust compiler with an efficient webassembly backend and offers polyphonic MIDI support.
 
