@@ -15,7 +15,7 @@ Compared to the IDE in a browser tab:
 ## Install
 
 ```bash
-git clone https://github.com/LucaSpanedda/faustide.git
+git clone -b macos-app-ide-1.10.3 https://github.com/LucaSpanedda/faustide.git
 cd faustide
 npm install
 npm run dist                 # builds the IDE into dist/
@@ -24,8 +24,21 @@ npm install                  # Electron runtime
 ./build-app.sh install       # builds and copies "Faust IDE.app" to /Applications
 ```
 
-After changing or updating the IDE: `npm run dist` in the repository root, then
-`./build-app.sh install` here.
+After changing the IDE: `npm run dist` in the repository root, then `./build-app.sh install` here.
+
+Update to the latest IDE from Grame (on the `macos-app` branch):
+
+```bash
+git remote add upstream https://github.com/grame-cncm/faustide.git   # only once
+git fetch upstream
+git merge upstream/master
+npm install && npm run dist
+cd miniapp && ./build-app.sh install
+git push origin macos-app
+```
+
+To go back to a known version: `git checkout macos-app-ide-1.10.3`, then `npm install && npm run dist`
+and `./build-app.sh install`.
 
 `./build-app.sh` alone builds the app into `miniapp/build/` without installing it.
 `npm start` runs the same window without packaging (development).
