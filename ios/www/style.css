@@ -1,0 +1,175 @@
+/* Faust Notes: style of lucaspanedda.github.io (monospace, black on white, dashed lines) */
+
+:root {
+    --bg: #ffffff;
+    --bg2: #ffffff;
+    --fg: #111111;
+    --dim: #888888;
+    --line: rgba(0, 0, 0, 0.25);
+    --accent: #111111;
+    --accent-fg: #ffffff;
+    --danger: #c0392b;
+    --font: "Source Code Pro", "SF Mono", Menlo, monospace;
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+    margin: 0;
+    height: 100%;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font);
+    font-size: 15px;
+    overscroll-behavior: none;
+}
+
+button {
+    font: inherit;
+    color: inherit;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+}
+
+.view {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+.view[hidden] { display: none; }
+
+/* header bar */
+.bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    border-bottom: 1px dashed var(--line);
+    min-height: 52px;
+}
+
+.bar h1 {
+    font-size: 22px;
+    margin: 0;
+    flex: 1;
+}
+
+.bar .icon {
+    font-size: 15px;
+    padding: 8px 4px;
+    white-space: nowrap;
+}
+
+.bar .title {
+    flex: 1;
+    font-weight: 700;
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* list */
+#search {
+    margin: 10px 16px;
+    padding: 9px 12px;
+    font: inherit;
+    color: var(--fg);
+    background: var(--bg2);
+    border: 1px dashed var(--line);
+    border-radius: 0;
+    -webkit-appearance: none;
+}
+
+#notes {
+    list-style: none;
+    margin: 0;
+    padding: 0 0 96px 0;
+    overflow-y: auto;
+    flex: 1;
+    -webkit-overflow-scrolling: touch;
+}
+
+#notes li {
+    padding: 12px 16px;
+    border-bottom: 1px dashed var(--line);
+}
+
+#notes li:active { background: var(--bg2); }
+
+#notes .name {
+    font-weight: 700;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#notes .meta {
+    color: var(--dim);
+    font-size: 12px;
+    margin-top: 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#empty {
+    color: var(--dim);
+    text-align: center;
+    margin-top: 40px;
+}
+
+.fab {
+    position: fixed;
+    right: calc(20px + env(safe-area-inset-right));
+    bottom: calc(24px + env(safe-area-inset-bottom));
+    width: 56px;
+    height: 56px;
+    border-radius: 28px;
+    background: var(--accent);
+    color: var(--accent-fg);
+    font-size: 30px;
+    line-height: 56px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+}
+
+/* editor */
+#editor-host {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+}
+
+#editor-host faust-editor {
+    flex: 1;
+    min-height: 0;
+    display: block;
+}
+
+#menu {
+    position: absolute;
+    top: calc(env(safe-area-inset-top) + 52px);
+    right: 12px;
+    background: var(--bg);
+    border: 1px dashed var(--line);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+}
+
+#menu[hidden] { display: none; }
+
+#menu button {
+    padding: 12px 24px;
+    text-align: left;
+}
+
+#menu button + button { border-top: 1px dashed var(--line); }
+
+#menu .danger { color: var(--danger); }

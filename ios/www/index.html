@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="color-scheme" content="light">
+<title>Faust Notes</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- list of the notes -->
+<section id="list-view" class="view">
+    <header class="bar">
+        <h1>Faust Notes</h1>
+        <button id="import" class="icon" title="Import .dsp files">Import</button>
+    </header>
+    <input id="search" type="search" placeholder="Search" autocomplete="off" autocorrect="off" spellcheck="false">
+    <ul id="notes"></ul>
+    <p id="empty" hidden>No notes. Tap + to write one.</p>
+    <button id="new" class="fab" title="New note">+</button>
+</section>
+
+<!-- one note -->
+<section id="editor-view" class="view" hidden>
+    <header class="bar">
+        <button id="back" class="icon">&lsaquo; Notes</button>
+        <button id="title" class="title" title="Rename"></button>
+        <button id="share" class="icon" title="Share">Share</button>
+        <button id="more" class="icon" title="More">&middot;&middot;&middot;</button>
+    </header>
+    <div id="editor-host"></div>
+    <div id="menu" hidden>
+        <button data-action="duplicate">Duplicate</button>
+        <button data-action="delete" class="danger">Delete</button>
+    </div>
+</section>
+
+<script src="faust-web-component.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

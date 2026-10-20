@@ -1,0 +1,49 @@
+diff --git a/src/editor.ts b/src/editor.ts
+index 6559d57..aa4a187 100644
+--- a/src/editor.ts
++++ b/src/editor.ts
+@@ -32,11 +32,15 @@ const faustLanguage = StreamLanguage.define(clike({
+     }
+ }))
+ 
+-export function createEditor(parent: HTMLElement, doc: string) {
++export function createEditor(parent: HTMLElement, doc: string, onChange?: (code: string) => void) {
+     return new EditorView({
+         parent,
+         doc,
+         extensions: [
++            // faust-notes: report every change of the text
++            EditorView.updateListener.of(update => {
++                if (update.docChanged && onChange) onChange(update.state.doc.toString())
++            }),
+             lineNumbers(),
+             highlightActiveLineGutter(),
+             highlightSpecialChars(),
+diff --git a/src/faust-editor.ts b/src/faust-editor.ts
+index d7d2405..fc22378 100644
+--- a/src/faust-editor.ts
++++ b/src/faust-editor.ts
+@@ -241,7 +241,13 @@ export default class FaustEditor extends HTMLElement {
+         // Set up links, buttons, and editor
+         const ideLink = this.shadowRoot!.querySelector("#ide") as HTMLAnchorElement;
+         const editorEl = this.shadowRoot!.querySelector("#editor") as HTMLDivElement;
+-        const editor = createEditor(editorEl, code);
++        const editor = createEditor(editorEl, code, (text) => this.dispatchEvent(new CustomEvent("change", { detail: text })));
++        // faust-notes: public API to read/replace the code
++        Object.defineProperty(this, "code", {
++            configurable: true,
++            get: () => editor.state.doc.toString(),
++            set: (text: string) => editor.dispatch({ changes: { from: 0, to: editor.state.doc.length, insert: text } }),
++        });
+ 
+         ideLink.onfocus = () => {
+             // Open current contents of editor in IDE
+@@ -252,6 +258,8 @@ export default class FaustEditor extends HTMLElement {
+ 
+         const runButton = this.shadowRoot!.querySelector("#run") as HTMLButtonElement;
+         const stopButton = this.shadowRoot!.querySelector("#stop") as HTMLButtonElement;
++        // faust-notes: stop the audio from outside (when the note is closed)
++        (this as any).stop = () => { if (!stopButton.disabled) stopButton.click(); };
+         const faustUIRoot = this.shadowRoot!.querySelector("#faust-ui") as HTMLDivElement;
+         const faustDiagram = this.shadowRoot!.querySelector("#faust-diagram") as HTMLDivElement;
+         const sidebar = this.shadowRoot!.querySelector("#sidebar") as HTMLDivElement;

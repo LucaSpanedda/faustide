@@ -1,5 +1,7 @@
 # Faust IDE [![Badge](https://img.shields.io/badge/link-996.icu-%23FF4D5B.svg?style=flat-square)](https://996.icu/#/en_US)
 
+> Branch `ios-notes`: **Faust Notes**, a small Faust IDE for iPhone, in [ios/](ios/README.md).
+
 ## This fork: Faust IDE as a macOS application
 
 This branch adds a native macOS app (`/Applications/Faust IDE.app`) built around the IDE:
