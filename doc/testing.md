@@ -34,6 +34,16 @@ The `StaticScope` rendering, interaction, and instance tests cover second-based
 waveform ticks, axis-specific double-click reset, drag selection and its
 sample/time label, clipboard CSV serialization, and top-to-bottom Data columns.
 
+Probes are covered at three levels. `ProbeModel.test.ts`, `ProbeHistory.test.ts`,
+`ProbeScopeRenderer.test.ts` and `ProbeRenderers.test.ts` are pure: probe
+discovery from the UI JSON (phase pairs, display order), the probe-free UI,
+the ring buffer, triggering, cursor readings, log-frequency mapping, spectrum
+peak and spectrogram colours. `ProbeViews.test.ts` builds each kind of view
+with real histories and the `canvasContext.ts` double, including a real KissFFT
+spectrum of a sine and the recorder's start/stop/download cycle. The probe
+feature of `@grame/faustwasm` itself (frame-by-frame rendering, bit-identical
+output) is tested in that package, not here.
+
 `src/tests/setup.ts` installs shared global mocks (`MockAudioContext`, `URL.createObjectURL`, `requestAnimationFrame`) before every test file.
 
 ### b2) Filesystem coherence tests
@@ -52,6 +62,11 @@ injecting fake tracker/service/file-manager objects and dispatching jsdom
 UI controllers are tested by injecting a real jsdom DOM. The test creates the required HTML elements, invokes the controller, then asserts DOM mutations.
 
 **Examples:** `AlertController.test.ts`, `DspCompileController.test.ts`, `ScopeDrawLoop.test.ts`
+
+`ProbePanelController.test.ts` drives the probe panel with a DSP node double
+whose `send()` hands blocks to the panel as the probe handler would. Because the
+`canvasContext.ts` double returns a new context on every `getContext` call, the
+tests read the last context created for a canvas to see what it drew last.
 
 Helpers in `src/tests/helpers/` provide reusable doubles:
 
@@ -75,7 +90,7 @@ These tests run the compiled app in a real Chromium browser. They are the **only
 | `app-smoke.spec.ts` | App boots, Monaco loads, FileManager initialises |
 | `dsp.spec.ts` | Faust compilation → active DSP node in the audio graph |
 | `audio-graph.spec.ts` | Audio routing (input/output connections) |
-| `diagram.spec.ts` | Faust SVG diagram generation |
+| `diagram.spec.ts` | Faust SVG diagram generation, including the process/effect selector |
 | `examples.spec.ts` | Loading and running bundled examples |
 | `export.spec.ts` | Export to the Faust Service platform |
 | `scopes.spec.ts` | Oscilloscope and spectrum analyser views |
@@ -83,6 +98,7 @@ These tests run the compiled app in a real Chromium browser. They are the **only
 | `files.spec.ts` | File manager operations (add, rename, delete) |
 | `midi.spec.ts` | MIDI input wiring |
 | `plot.spec.ts` | Plot rendering, FFT windows, magnitude/phase modes and explicit dB limits, waveform selection/copy, axis reset, and Data layout |
+| `probes.spec.ts` | Probes tab: shown only with probes, one view per probe in display order, a scope drawn from the probed signal, a probe recorded to a downloaded WAV |
 | `recorder.spec.ts` | Audio recorder workflow |
 | `settings.spec.ts` | Settings persistence, including embedded and popup parameter state after recompilation |
 

@@ -18,6 +18,7 @@ This document records the `src/index.ts` refactor plan and the current post-refa
 - The shared mutable runtime environment (`FaustEditor*Env`) is no longer written by reference from many sites: Phase 12 routed every audio/scope mutation and the DSP graph connect/disconnect through `AudioGraphState`/`ScopeState`, and named the run/diagram seam (`RuntimeActions`). The composition root has a single remaining late binding (`dspCompileController`), a genuine initialization cycle.
 - Static plots now retain magnitude and phase from one FFT pass, support automatic/rectangular/Hann/Blackman FFT windows, default offline analysis to an unscaled rectangular FFT so a unit impulse is flat at 0 dB with zero phase, read offline phase from the FFT window beginning at capture sample zero, retain the reference plotter's symmetric-Hann plus `N/4` convention, support dBFS/linear-amplitude magnitude views with explicit bottom/top dB limits, expose a degree-labelled phase mode, use zoom-aware linear/log frequency ticks, and keep cursor-anchored zoom state over a wider horizontal and vertical range. Waveform plots add sample-rate-derived second ticks, drag selection with sample/time duration and clipboard CSV export, axis-specific double-click zoom reset, and a column-major Data view.
 - Generated Faust UI messages use the native browser event boundary, and remembered parameters are resent to both the embedded UI and an already-open popup so their controls match the values restored into a newly compiled DSP.
+- Probes: `probes.lib` (prefix `pr`) is installed into the Faust virtual filesystem next to `primitives.lib`. A probe is a bargraph with `[probe:kind]` metadata (`scope`, `phase`, `fft`, `spectrogram`, `number`, `rec`); it is stripped from the UI sent to the Faust UI iframe/popup and drawn in a Probes tab shown only for a DSP with probes. While the tab is shown (or a recorder records), `ProbePanelController` sets the node's probe handler (`@grame/faustwasm` probes: frame-by-frame rendering, output unchanged), feeds one `ProbeHistory` per probe signal and lets each `ProbeView` redraw at its own rate; otherwise no handler is set and the DSP renders as without probes.
 - The planned structural extraction work is complete through Phase 11 (scope rendering factorization). Remaining work is manual validation and normal maintenance, not another large extraction pass.
 
 ## Target architecture
@@ -62,6 +63,7 @@ The refactor split the original runtime responsibilities as follows.
 | Diagram generation and interaction | `src/runtime/DiagramService.ts`, `src/ui/DiagramController.ts`, `src/ui/DiagramView.ts` |
 | Export and sharing | `src/runtime/ExportService.ts`, `src/runtime/ShareUrlService.ts`, `src/ui/ExportController.ts`, `src/ui/ShareModalController.ts`, `src/ui/UrlParamsController.ts` |
 | UI controls | `src/ui/SettingsPanelController.ts`, `src/ui/PlotController.ts`, `src/ui/MidiController.ts`, `src/ui/AudioInputController.ts`, `src/ui/AudioOutputController.ts`, `src/ui/AudioDeviceController.ts`, `src/ui/RecorderController.ts`, `src/ui/DspControlsController.ts`, `src/ui/FaustUiController.ts` |
+| Probes | `src/probes/probes.lib`, `src/runtime/ProbeModel.ts`, `src/runtime/ProbeHistory.ts`, `src/scope/probe/` (`ProbeView` and one view per kind, renderers, `createProbeView`), `src/ui/ProbePanelController.ts` |
 | Layout and startup | `src/ui/PanelToggleView.ts`, `src/ui/ResizablePanelsController.ts`, `src/ui/GlobalShortcutsController.ts`, `src/ui/TooltipController.ts`, `src/ui/ApplicationStartupController.ts`, `src/ui/StartupControlsController.ts` |
 
 ## Phase status
@@ -88,8 +90,8 @@ The plan above is driven by characterization testing: behavior is locked down wi
 | Layer | Tool | Script | Scope |
 |-------|------|--------|-------|
 | Lint / style | ESLint + Stylelint | `npm test` (`test-eslint`, `test-stylelint`) | static quality gate |
-| Unit / jsdom integration | Vitest | `npm run test:unit` (`:watch`, `test:coverage`) | 85 files, 596 tests |
-| Browser end-to-end | Playwright | `npm run test:e2e` | 74 tests against the built `dist/` |
+| Unit / jsdom integration | Vitest | `npm run test:unit` (`:watch`, `test:coverage`) | 92 files, 655 tests |
+| Browser end-to-end | Playwright | `npm run test:e2e` | 79 tests against the built `dist/` |
 
 ### Unit and integration layer (Vitest)
 
@@ -947,7 +949,7 @@ Run these manually after phases touching audio, DSP, export, or cross-window mes
 - open DSP UI popup and verify parameter sync both ways;
 - use keyboard MIDI and a real MIDI input when available;
 - drag/drop a source audio file;
-- generate a diagram, zoom, pan, and follow SVG links;
+- generate a diagram, zoom, pan, and follow SVG links (also in the `effect` diagram of a polyphonic instrument);
 - export via the production Faust service;
 - verify layout on narrow and wide windows.
 

@@ -24,8 +24,8 @@ describe("BootstrapLoaders", () => {
         vi.clearAllMocks();
     });
 
-    it("loads libfaust, reports its version, and installs primitives.lib", async () => {
-        const fetchMock = vi.fn(async () => ({ text: async () => "declare name \"primitives\";" }));
+    it("loads libfaust, reports its version, and installs primitives.lib and probes.lib", async () => {
+        const fetchMock = vi.fn(async (url: string) => ({ text: async () => `declare name "${url}";` }));
         vi.stubGlobal("fetch", fetchMock);
         const consoleInfo = vi.spyOn(console, "info").mockImplementation(() => undefined);
         const { loadFaustRuntime } = await import("../runtime/BootstrapLoaders");
@@ -35,7 +35,9 @@ describe("BootstrapLoaders", () => {
         expect(instantiateFaustModuleFromFile).toHaveBeenCalledWith("faustwasm/libfaust-wasm.js");
         expect(consoleInfo).toHaveBeenCalledWith("libfaust version: 2.79.3");
         expect(fetchMock).toHaveBeenCalledWith("primitives.lib");
-        expect(fileSystem.writeFile).toHaveBeenCalledWith("/usr/share/faust/primitives.lib", "declare name \"primitives\";");
+        expect(fileSystem.writeFile).toHaveBeenCalledWith("/usr/share/faust/primitives.lib", "declare name \"primitives.lib\";");
+        expect(fetchMock).toHaveBeenCalledWith("probes.lib");
+        expect(fileSystem.writeFile).toHaveBeenCalledWith("/usr/share/faust/probes.lib", "declare name \"probes.lib\";");
         expect(runtime.libFaust).toBe(libFaust);
     });
 });

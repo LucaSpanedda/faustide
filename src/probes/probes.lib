@@ -1,0 +1,125 @@
+//################################### probes.lib #########################################
+// Faust Probes library, as loaded by the Faust IDE. Its official prefix is `pr`.
+//
+// A probe shows a signal from anywhere inside a DSP while it runs, without
+// rewiring anything to the outputs: it passes its input through unchanged and
+// the IDE shows what goes through it in its Probes tab.
+//
+// ```
+// import("stdfaust.lib");
+// pr = library("probes.lib");
+// process = os.osc(440) : pr.scope(1) : fi.lowpass(2, 800) : pr.scope(2);
+// ```
+//
+// The number identifies the probe (Faust labels cannot be computed from
+// strings): give each probe of a kind its own. The name shown by the IDE can
+// be changed there. Every probe passes its input(s) through unchanged:
+//
+// * `scope(n)`: oscilloscope
+// * `phase(n)`: two signals against each other (x, y)
+// * `fft(n)`: spectrum
+// * `spectrogram(n)`: spectrum over time
+// * `number(n)`: value, with its minimum, maximum and mean
+// * `rec(n)`: records the signal and downloads it as a WAV file
+//
+// A probe is a bargraph carrying the `[probe:kind]` metadata, which the IDE
+// reads on every frame. Outside the IDE, a library of the same name where every
+// function is a plain wire (`scope(n) = _;`, `phase(n) = _, _;`) compiles the
+// same code without probes.
+//########################################################################################
+
+declare name "Faust Probes Library";
+declare version "0.1.0";
+
+//--------------------------------`(pr.)scope`------------------------------------------
+// Oscilloscope: draws the signal going through it.
+//
+// #### Usage
+//
+// ```
+// _ : scope(n) : _
+// ```
+//
+// Where:
+//
+// * `n`: number of the probe, a constant
+//----------------------------------------------------------------------------------------
+scope(n) = _ <: attach(_, hbargraph("scope %n[probe:scope]", -1, 1));
+
+//--------------------------------`(pr.)phase`------------------------------------------
+// Phase portrait (XY): draws a signal against another.
+//
+// #### Usage
+//
+// ```
+// _, _ : phase(n) : _, _
+// ```
+//
+// Where:
+//
+// * `n`: number of the probe, a constant; the first input is x, the second y
+//----------------------------------------------------------------------------------------
+phase(n) = (_ <: attach(_, hbargraph("phase %n x[probe:phase]", -1, 1))),
+           (_ <: attach(_, hbargraph("phase %n y[probe:phase]", -1, 1)));
+
+//--------------------------------`(pr.)fft`--------------------------------------------
+// Spectrum: magnitude of the signal going through it, against frequency.
+//
+// #### Usage
+//
+// ```
+// _ : fft(n) : _
+// ```
+//
+// Where:
+//
+// * `n`: number of the probe, a constant
+//----------------------------------------------------------------------------------------
+fft(n) = _ <: attach(_, hbargraph("fft %n[probe:fft]", -1, 1));
+
+//--------------------------------`(pr.)spectrogram`------------------------------------
+// Spectrogram: spectrum of the signal going through it, scrolling in time.
+//
+// #### Usage
+//
+// ```
+// _ : spectrogram(n) : _
+// ```
+//
+// Where:
+//
+// * `n`: number of the probe, a constant
+//----------------------------------------------------------------------------------------
+spectrogram(n) = _ <: attach(_, hbargraph("spectrogram %n[probe:spectrogram]", -1, 1));
+
+//--------------------------------`(pr.)number`-----------------------------------------
+// Number: current value of the signal going through it, with its minimum,
+// maximum and mean over a window.
+//
+// #### Usage
+//
+// ```
+// _ : number(n) : _
+// ```
+//
+// Where:
+//
+// * `n`: number of the probe, a constant
+//----------------------------------------------------------------------------------------
+number(n) = _ <: attach(_, hbargraph("number %n[probe:number]", -1, 1));
+
+//--------------------------------`(pr.)rec`--------------------------------------------
+// Recorder: records the signal going through it, between a start and a stop
+// in the IDE, and downloads it as a WAV file.
+//
+// #### Usage
+//
+// ```
+// _ : rec(n) : _
+// ```
+//
+// Where:
+//
+// * `n`: number of the probe, a constant
+//----------------------------------------------------------------------------------------
+rec(n) = _ <: attach(_, hbargraph("rec %n[probe:rec]", -1, 1));

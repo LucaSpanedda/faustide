@@ -12,3 +12,16 @@ export function downloadTextFile(content: string, filename: string): void {
     a.target = "_blank";
     a.click();
 }
+
+/**
+ * Triggers a browser download of binary `content` (a WAV file, for instance)
+ * under `filename`, the same way as `downloadTextFile`.
+ */
+export function downloadBlobFile(content: Blob, filename: string): void {
+    const url = URL.createObjectURL(content);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.target = "_blank";
+    a.click();
+}

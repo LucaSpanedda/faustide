@@ -2,8 +2,10 @@ import type { FaustCompiler, FaustAudioWorkletNode, FaustScriptProcessorNode } f
 import type { FileManager } from "../FileManager";
 import type { ExportService } from "../runtime/ExportService";
 import { AudioGraphState } from "../runtime/state/AudioGraphState";
+import { stripProbes } from "../runtime/ProbeModel";
 import type { FaustEditorAudioEnv, FaustEditorCompileOptions, FaustEditorUIEnv } from "../runtime/types";
 import type { MidiController } from "./MidiController";
+import type { ProbePanelController } from "./ProbePanelController";
 
 type DspNode = FaustAudioWorkletNode | FaustScriptProcessorNode;
 
@@ -18,6 +20,8 @@ type FaustUiControllerOptions = {
     getServer: () => string;
     getMidiController: () => MidiController | undefined;
     saveDspParams: () => void;
+    /** Draws the probes of the DSP next to its controls */
+    probePanel?: ProbePanelController;
 };
 
 /**
@@ -26,7 +30,10 @@ type FaustUiControllerOptions = {
  * Compilation stays in DspRunner and the composition root. This controller owns
  * the DOM and cross-window protocol around compiled DSP nodes: parameter
  * mirroring, keyboard MIDI forwarding, GUI Builder exports, popup creation,
- * tab close teardown, and DSP metadata badge refresh.
+ * tab close teardown, and DSP metadata badge refresh. Probes are not
+ * controls: they are stripped from the UI sent to the iframe/popup and handed
+ * to the probe panel, whose Probes tab shows only for a DSP with probes and
+ * which probes only while that tab is shown.
  */
 export class FaustUiController {
     private readonly audioEnv: FaustEditorAudioEnv;
@@ -40,6 +47,7 @@ export class FaustUiController {
     private readonly getServer: () => string;
     private readonly getMidiController: () => MidiController | undefined;
     private readonly saveDspParams: () => void;
+    private readonly probePanel?: ProbePanelController;
 
     constructor(options: FaustUiControllerOptions) {
         this.audioEnv = options.audioEnv;
@@ -53,6 +61,7 @@ export class FaustUiController {
         this.getServer = options.getServer;
         this.getMidiController = options.getMidiController;
         this.saveDspParams = options.saveDspParams;
+        this.probePanel = options.probePanel;
     }
 
     /**
@@ -63,6 +72,9 @@ export class FaustUiController {
         $(window).on("beforeunload", () => (this.uiEnv.uiPopup ? this.uiEnv.uiPopup.close() : undefined));
         $("#nav-item-faust-ui .btn-popup").on("click", e => this.openPopup(e));
         $("#nav-item-faust-ui .btn-close-tab").on("click", e => this.closeDspTab(e));
+        $("#tab-probes")
+            .on("shown.bs.tab", () => this.probePanel?.setActive(true))
+            .on("hidden.bs.tab", () => this.probePanel?.setActive(false));
     }
 
     /**
@@ -77,6 +89,11 @@ export class FaustUiController {
             if (this.uiEnv.uiPopup) this.uiEnv.uiPopup.postMessage(msg, "*");
         });
         this.bindNodeUi(node, uiWindow);
+        if (this.probePanel && this.audioEnv.audioCtx) {
+            this.probePanel.attach(node, this.audioEnv.audioCtx.sampleRate);
+            this.showProbesTab(this.probePanel.hasProbes);
+            this.probePanel.setActive($("#tab-probes").hasClass("active"));
+        }
         $("#faust-ui-default").hide();
         $("#nav-item-faust-ui").show();
         $("#iframe-faust-ui").css("visibility", "visible");
@@ -111,7 +128,7 @@ export class FaustUiController {
      */
     private bindNodeUi(node: DspNode, uiWindow: Window | null) {
         const callback = () => {
-            const msg = { type: "ui", ui: node.getUI() };
+            const msg = { type: "ui", ui: stripProbes(node.getUI()) };
             if (uiWindow) uiWindow.postMessage(msg, "*");
             if (this.uiEnv.uiPopup) this.uiEnv.uiPopup.postMessage(msg, "*");
             if (this.compileOptions.saveParams) {
@@ -190,7 +207,7 @@ export class FaustUiController {
         const node = this.audioEnv.dsp as DspNode;
         if (!node) return;
         const callback = () => {
-            if (this.uiEnv.uiPopup) this.uiEnv.uiPopup.postMessage({ type: "ui", ui: node.getUI() }, "*");
+            if (this.uiEnv.uiPopup) this.uiEnv.uiPopup.postMessage({ type: "ui", ui: stripProbes(node.getUI()) }, "*");
             this.postCurrentParams(node, this.uiEnv.uiPopup);
         };
         if (this.uiEnv.uiPopup && !this.uiEnv.uiPopup.closed) callback();
@@ -204,6 +221,8 @@ export class FaustUiController {
         e.stopPropagation();
         e.preventDefault();
         this.audioState.disconnectCurrentDsp();
+        this.probePanel?.detach();
+        this.showProbesTab(false);
         if ($("#tab-faust-ui").hasClass("active")) $("#tab-diagram").tab("show");
         $("#nav-item-faust-ui").hide();
         if (this.uiEnv.uiPopup) this.uiEnv.uiPopup.close();
@@ -239,6 +258,15 @@ export class FaustUiController {
         this.uiEnv.uiPopup = window.open("faust-ui/index.html", "Faust DSP", "directories=no,titlebar=no,toolbar=no,location=no,status=no,menubar=no,scrollbars=no,resizable=no,width=800,height=600");
         if (!this.uiEnv.uiPopup) return;
         this.uiEnv.uiPopup.onload = callback;
+    }
+
+    /**
+     * Shows or hides the Probes tab, leaving it for the diagram if it was the
+     * active one.
+     */
+    private showProbesTab(show: boolean) {
+        if (!show && $("#tab-probes").hasClass("active")) $("#tab-diagram").tab("show");
+        $("#nav-item-probes").toggle(show);
     }
 
     /**

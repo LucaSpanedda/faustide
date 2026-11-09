@@ -1,6 +1,3 @@
-/* eslint-disable newline-per-chained-call */
-/* eslint-disable @typescript-eslint/no-use-before-define */
-/* eslint-disable no-use-before-define */
 // TODO
 // webworkerify
 // bargraph in scopes
@@ -71,6 +68,8 @@ import { PanelToggleView } from "./ui/PanelToggleView";
 import { ResizablePanelsController } from "./ui/ResizablePanelsController";
 import { DiagramView } from "./ui/DiagramView";
 import { MidiController } from "./ui/MidiController";
+import { ProbePanelController } from "./ui/ProbePanelController";
+import { safeStorage } from "./utils";
 import { RecorderController } from "./ui/RecorderController";
 import { PlotController } from "./ui/PlotController";
 import { AudioOutputController } from "./ui/AudioOutputController";
@@ -319,7 +318,12 @@ $(async () => {
         exportService,
         getServer: () => runtimeConfig.getServer(),
         getMidiController: () => midiController,
-        saveDspParams: () => runtimeSettings.saveDspParams(dspParams)
+        saveDspParams: () => runtimeSettings.saveDspParams(dspParams),
+        probePanel: new ProbePanelController({
+            container: $<HTMLDivElement>("#probe-panel")[0],
+            storage: safeStorage,
+            getFileName: () => uiEnv.fileManager.mainFileName
+        })
     });
     dspCompileController = new DspCompileController({
         audioEnv,
@@ -574,6 +578,7 @@ $(async () => {
     }).bind();
     projectRuntimeController.bindEditorContent(editor, uiEnv.fileManager);
     faustUiController.bind();
+    diagramController.bind();
     new DiagramView(diagramService).bind();
     new GlobalShortcutsController({
         docs: () => $("#btn-docs")[0].click(),
