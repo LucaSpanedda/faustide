@@ -4,12 +4,17 @@
 
 This branch adds a native macOS app (`/Applications/Faust IDE.app`) built around the IDE:
 it opens in under a second, works offline and keeps audio running at full speed when the
-window is in the background. Details in [miniapp/README.md](miniapp/README.md).
+window is in the background. It also includes the **probes** (`pr.scope`, `pr.fft`, … in a
+Probes tab, branch `probes`), which need the `probes` branch of faustwasm. Details in
+[miniapp/README.md](miniapp/README.md).
 
 ```bash
+git clone -b probes https://github.com/LucaSpanedda/faustwasm.git
 git clone -b macos-app https://github.com/LucaSpanedda/faustide.git
-cd faustide
-npm install && npm run dist          # build the IDE
+cd faustwasm && npm install && npm run build && cd ..
+cd faustide && npm install
+rm -rf node_modules/@grame/faustwasm && ln -s ../../../faustwasm node_modules/@grame/faustwasm
+npm run dist                         # build the IDE
 cd miniapp
 npm install                          # Electron runtime
 ./build-app.sh install               # copy "Faust IDE.app" to /Applications
@@ -17,9 +22,11 @@ npm install                          # Electron runtime
 
 | | |
 |---|---|
-| `macos-app` (default branch) | Faust IDE + macOS app, updated from Grame when needed |
+| `macos-app` (default branch) | Faust IDE 1.14.1 + probes + macOS app, the version in daily use |
+| `probes` | the probes alone, on Grame's IDE (proposed to Grame) |
 | `master` | unchanged copy of [grame-cncm/faustide](https://github.com/grame-cncm/faustide) |
-| tag `macos-app-ide-1.10.3` | macOS app with IDE 1.10.3 (December 2025), the version in daily use |
+| tag `macos-app-ide-1.14.0` | macOS app with IDE 1.14.0, without probes |
+| tag `macos-app-ide-1.10.3` | macOS app with IDE 1.10.3 (December 2025) |
 
 ---
 

@@ -14,10 +14,16 @@ Compared to the IDE in a browser tab:
 
 ## Install
 
+The probes need the `probes` branch of faustwasm, linked in place of the npm package (with
+the npm package the IDE works, without the Probes tab):
+
 ```bash
+git clone -b probes https://github.com/LucaSpanedda/faustwasm.git
 git clone -b macos-app https://github.com/LucaSpanedda/faustide.git
+cd faustwasm && npm install && npm run build && cd ..
 cd faustide
 npm install
+rm -rf node_modules/@grame/faustwasm && ln -s ../../../faustwasm node_modules/@grame/faustwasm
 npm run dist                 # builds the IDE into dist/
 cd miniapp
 npm install                  # Electron runtime
@@ -37,8 +43,9 @@ cd miniapp && ./build-app.sh install
 git push origin macos-app
 ```
 
-To go back to a known version: `git checkout macos-app-ide-1.10.3`, then `npm install && npm run dist`
-and `./build-app.sh install`.
+After a merge from Grame, `npm install` restores the npm faustwasm: link the probes branch again
+before `npm run dist`. To go back to a known version: `git checkout macos-app-ide-1.14.0` (or
+`macos-app-ide-1.10.3`), then `npm install && npm run dist` and `./build-app.sh install`.
 
 `./build-app.sh` alone builds the app into `miniapp/build/` without installing it.
 `npm start` runs the same window without packaging (development).
