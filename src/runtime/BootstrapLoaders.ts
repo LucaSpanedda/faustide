@@ -6,8 +6,8 @@
  */
 
 /**
- * Loads Faust WASM, creates compiler services, and installs primitives.lib into
- * the Faust virtual filesystem.
+ * Loads Faust WASM, creates compiler services, and installs primitives.lib and
+ * probes.lib into the Faust virtual filesystem.
  */
 export async function loadFaustRuntime() {
     const { instantiateFaustModuleFromFile, LibFaust, FaustCompiler, FaustSvgDiagrams } = await import("@grame/faustwasm");
@@ -19,6 +19,9 @@ export async function loadFaustRuntime() {
     const faustPrimitiveLibFile = await fetch("primitives.lib");
     const faustPrimitiveLib = await faustPrimitiveLibFile.text();
     libFaust.fs().writeFile("/usr/share/faust/primitives.lib", faustPrimitiveLib);
+    // The IDE's own library: probes drawn by ProbePanelController
+    const faustProbesLibFile = await fetch("probes.lib");
+    libFaust.fs().writeFile("/usr/share/faust/probes.lib", await faustProbesLibFile.text());
 
     return {
         FaustCompiler,
