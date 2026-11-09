@@ -270,6 +270,9 @@ body {
                     & > #nav-item-gui-builder {
                         display: none;
                     }
+                    & > #nav-item-probes {
+                        display: none;
+                    }
                     & button.btn-outline-light {
                         font-size: 15px;
                         border-color: transparent;
@@ -326,6 +329,66 @@ body {
                         }
                         & > #faust-ui-default {
                             top: 20%;
+                        }
+                    }
+                    & > #probes {
+                        overflow-y: auto;
+                        // Opaque, as the Plot tab: the DSP UI iframe stays rendered underneath
+                        background-color: #181818;
+                        & > #probe-panel {
+                            display: grid;
+                            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+                            grid-auto-rows: 200px;
+                            gap: 8px;
+                            padding: 8px;
+                        }
+                        & .probe-view {
+                            display: flex;
+                            flex-direction: column;
+                            min-width: 0;
+                            border: 1px solid #404040;
+                            background-color: #000000;
+                        }
+                        & .probe-view-header {
+                            display: flex;
+                            flex-wrap: wrap;
+                            align-items: center;
+                            gap: 4px;
+                            padding: 3px 4px;
+                            background-color: #1e1e1e;
+                            font-size: 0.75rem;
+                            & > .probe-name {
+                                flex: 1 1 80px;
+                                min-width: 60px;
+                                border: none;
+                                background: transparent;
+                                color: #e0e0e0;
+                                font-family: monospace;
+                                &:focus {
+                                    outline: 1px solid #606060;
+                                }
+                            }
+                            & > select {
+                                width: auto;
+                                height: 22px;
+                                padding: 0 18px 0 4px;
+                                font-size: 0.7rem;
+                            }
+                            & > .btn {
+                                padding: 0 6px;
+                                font-size: 0.7rem;
+                                line-height: 20px;
+                                &.active {
+                                    background-color: #e0e0e0;
+                                    color: #000000;
+                                }
+                            }
+                        }
+                        & .probe-canvas {
+                            flex: 1 1 auto;
+                            width: 100%;
+                            min-height: 0;
+                            cursor: crosshair;
                         }
                     }
                     & > #gui-builder {

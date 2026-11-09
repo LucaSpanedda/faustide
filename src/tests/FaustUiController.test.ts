@@ -8,6 +8,7 @@ const setupDom = () => {
         <div id="nav-item-faust-ui"><button class="btn-popup"></button><button class="btn-close-tab"></button></div>
         <div id="output-analyser-ui"></div>
         <div id="tab-faust-ui"></div>
+        <div id="nav-item-probes"><div id="tab-probes"></div></div>
         <div id="tab-diagram"></div>
         <div id="dsp-ui-detail"></div>
         <div id="dsp-ui-default"></div>
@@ -182,5 +183,76 @@ describe("FaustUiController", () => {
         expect(popup.close).toHaveBeenCalled();
         expect(uiEnv.outputScope.disabled).toBe(true);
         expect($("#dsp-ui-default").html()).toBe("no DSP yet");
+    });
+
+    describe("probes", () => {
+        const PROBE = { type: "hbargraph", label: "scope 1", address: "/main/scope_1", meta: [{ probe: "scope" }] };
+        const createProbePanel = () => ({ attach: vi.fn(), detach: vi.fn(), setActive: vi.fn(), hasProbes: false });
+
+        it("posts the UI without probes and hands the node to the probe panel", () => {
+            const probePanel = createProbePanel();
+            const { controller } = bindController({
+                audioEnv: { audioCtx: { sampleRate: 44100 } },
+                options: { probePanel }
+            });
+            probePanel.hasProbes = true;
+            const node = createNode();
+            node.getUI.mockReturnValue([{ type: "vgroup", label: "main", items: [{ type: "vslider", label: "gain" }, PROBE] }]);
+            const postMessage = vi.fn();
+            Object.defineProperty($("#iframe-faust-ui")[0], "contentWindow", { value: { postMessage }, configurable: true });
+            $("#tab-probes").addClass("active");
+
+            controller.showCompiledDsp(node as unknown as Parameters<typeof controller.showCompiledDsp>[0]);
+
+            expect(postMessage).toHaveBeenCalledWith({ type: "ui", ui: [{ type: "vgroup", label: "main", items: [{ type: "vslider", label: "gain" }] }] }, "*");
+            expect(probePanel.attach).toHaveBeenCalledWith(node, 44100);
+            expect($("#nav-item-probes").css("display")).not.toBe("none");
+            expect(probePanel.setActive).toHaveBeenLastCalledWith(true);
+        });
+
+        it("hides the Probes tab for a DSP without probes", () => {
+            const probePanel = createProbePanel();
+            const { controller } = bindController({
+                audioEnv: { audioCtx: { sampleRate: 48000 } },
+                options: { probePanel }
+            });
+
+            controller.showCompiledDsp(createNode() as unknown as Parameters<typeof controller.showCompiledDsp>[0]);
+
+            expect($("#nav-item-probes").css("display")).toBe("none");
+        });
+
+        it("keeps the probe panel inactive when the Probes tab is not shown", () => {
+            const probePanel = createProbePanel();
+            const { controller } = bindController({
+                audioEnv: { audioCtx: { sampleRate: 48000 } },
+                options: { probePanel }
+            });
+
+            controller.showCompiledDsp(createNode() as unknown as Parameters<typeof controller.showCompiledDsp>[0]);
+
+            expect(probePanel.setActive).toHaveBeenLastCalledWith(false);
+        });
+
+        it("follows the Probes tab: active when shown, inactive when hidden", () => {
+            const probePanel = createProbePanel();
+            bindController({ options: { probePanel } });
+
+            $("#tab-probes").trigger("shown.bs.tab");
+            expect(probePanel.setActive).toHaveBeenLastCalledWith(true);
+            $("#tab-probes").trigger("hidden.bs.tab");
+            expect(probePanel.setActive).toHaveBeenLastCalledWith(false);
+        });
+
+        it("removes the probes when the DSP is closed", () => {
+            const probePanel = createProbePanel();
+            bindController({ audioEnv: { dsp: createNode() }, options: { probePanel } });
+
+            $("#nav-item-probes").show();
+            $("#nav-item-faust-ui .btn-close-tab").trigger("click");
+
+            expect(probePanel.detach).toHaveBeenCalled();
+            expect($("#nav-item-probes").css("display")).toBe("none");
+        });
     });
 });
