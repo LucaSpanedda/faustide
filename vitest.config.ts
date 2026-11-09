@@ -23,10 +23,10 @@ export default defineConfig({
             // The whole src tree stays counted. Raise these whenever coverage
             // improves.
             thresholds: {
-                statements: 80.5,
-                branches: 68.0,
-                functions: 78.7,
-                lines: 83.4
+                statements: 81.9,
+                branches: 69.2,
+                functions: 79.6,
+                lines: 84.6
             }
         }
     }
